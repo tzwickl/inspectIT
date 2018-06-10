@@ -195,6 +195,7 @@ public class SpringAgent implements IAgent {
 				instrumentationAwareBean.setInstrumentation(instrumentation);
 			}
 		} catch (Throwable throwable) { // NOPMD
+			throwable.printStackTrace();
 			disableInstrumentation = true;
 			LOG.error("inspectIT agent initialization failed. Agent will not be active.", throwable);
 		}

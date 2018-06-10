@@ -409,8 +409,12 @@ public class JavaAgent implements ClassFileTransformer {
 				JarEntry jarEntry = jarEntries.nextElement();
 				if (!jarEntry.isDirectory() && isJar(jarEntry.getName())) {
 					File jar = jarEntryAsFile(jarFile, jarEntry);
-					if (jar.getName().contains("io.opentracing")) {
+					if (jar.getName().contains("open") || jar.getName().contains("disruptor") || jar.getName().contains("guava") || jar.getName().contains("simpleclient")
+							|| jar.getName().contains("grpc")) {
 						bootClassLoaderJarFiles.add(jar.getAbsolutePath());
+						// instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(file));
+						// instrumentation.appendToSystemClassLoaderSearch(new JarFile(file));
+						// addJarResource(jar);
 					} else {
 						addJarResource(jar);
 					}

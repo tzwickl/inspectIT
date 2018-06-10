@@ -1,5 +1,6 @@
 package rocks.inspectit.agent.java.core.impl;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,6 +25,10 @@ import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 
+import io.opencensus.contrib.zpages.ZPageHandlers;
+import io.opencensus.exporter.stats.prometheus.PrometheusStatsCollector;
+import io.opencensus.stats.Stats;
+import io.prometheus.client.exporter.HTTPServer;
 import rocks.inspectit.agent.java.config.StorageException;
 import rocks.inspectit.agent.java.core.ICoreService;
 import rocks.inspectit.agent.java.core.disruptor.IDisruptorStrategy;
@@ -149,6 +154,24 @@ public class CoreService implements ICoreService {
 	 */
 	@PostConstruct
 	public void start() {
+		try {
+			PrometheusStatsCollector.createAndRegister();
+			ZPageHandlers.startHttpServerAndRegisterAll(9093);
+			System.out.println("Start " + Stats.getStatsRecorder().toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// Uses a simple Prometheus HTTPServer to export metrics.
+		// You can use a Prometheus PushGateway instead, though that's discouraged by
+		// Prometheus:
+		// https://prometheus.io/docs/practices/pushing/#should-i-be-using-the-pushgateway.
+		try {
+			io.prometheus.client.exporter.HTTPServer server = new HTTPServer(/* host */ "localhost", /* port */ 9092, /* daemon */ true);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		// start disruptor
 		try {
 			startDisruptor();
@@ -258,6 +281,7 @@ public class CoreService implements ICoreService {
 						} catch (Exception e) {
 							// Critical error happend! Logging state and removing the sensor to
 							// avoid further failing iterations.
+							e.printStackTrace();
 							log.error("Platform sensor " + platformSensor.getClass().getSimpleName() + " cannot update data! Platform sensor shuts down. No metrics will be provided.", e);
 
 							// Removing sensor from the sensor list to not gather data anymore.
@@ -285,6 +309,7 @@ public class CoreService implements ICoreService {
 					}
 				}
 			} catch (Throwable t) { // NOPMD NOCHK
+				t.printStackTrace();
 				// catch any exception in order not to cancel the task in the executor
 				log.error("Error occurred during refreshing of the system sensors.", t);
 			}

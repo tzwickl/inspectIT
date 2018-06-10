@@ -13,8 +13,8 @@ evaluationDependsOn(':inspectit.shared.all')
 defaultTasks 'releaseAndAnalyze'
 
 /** used by the eclipse buildship plugin */
-sourceCompatibility = '1.6'
-targetCompatibility = '1.6'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
 /** defined to have it included in Eclipse as source */
 sourceSets {
@@ -70,7 +70,7 @@ jar {
 			javaexec {
 				classpath configurations.jarCheck
 				main = 'com.mindprod.jarcheck.JarCheck'
-				args = ["$file", "1.0", "1.6"]
+				args = ["$file", "1.0", "1.8"]
 				standardOutput = new File(jarCheckOutput, "$name-check.log").newOutputStream()
 			}
 		}
